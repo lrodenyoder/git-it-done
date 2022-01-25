@@ -9,11 +9,19 @@ var getUserRepos = function (user) {
     var apiUrl = "https://api.github.com/users/" + user + "/repos";
 
     //make a request to the url
-    fetch(apiUrl).then(function (response) {
-        response.json().then(function (data) {
-            displayRepos(data, user);
+    fetch(apiUrl)
+        .then(function (response) {
+            if (response.ok) {
+                response.json().then(function (data) {
+                    displayRepos(data, user);
+                });
+            } else {
+                alert("Error: GitHub User Not Found");
+            }
+        })
+        .catch(function (error) {
+            alert("Unable to connect to GitHub");
         });
-    });
 };
 
 var formSubmitHandler = function (event) {
@@ -30,6 +38,11 @@ var formSubmitHandler = function (event) {
 };
 
 var displayRepos = function (repos, searchTerm) {
+    //check if api returned any repositories
+    if (repos.length === 0) {
+        repoContainerEl.textContent = "No repositories found.";
+        return;
+    }
     console.log(repos);
     console.log(searchTerm);
     //clear old content
@@ -51,6 +64,20 @@ var displayRepos = function (repos, searchTerm) {
 
         //append to child container
         repoEl.appendChild(titleEl);
+
+        //create a status element
+        var statusEl = document.createElement("span");
+        statusEl.classList = "flex=row align-center";
+
+        //check if current repo has issues r not
+        if (repos[i].open_issues_count > 0) {
+            statusEl.innerHTML = "<i class='fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + " issue(s)";
+        } else {
+            statusEl.innerHTML = "<i class='fa fa-check-square status-icon icon-success'></i>";
+        }
+
+        //append to container
+        repoEl.appendChild(statusEl);
 
         //append container to the DOM
         repoContainerEl.appendChild(repoEl);
